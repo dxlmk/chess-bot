@@ -15,7 +15,6 @@ WHITE  = (255,255,255)
 BLACK = (0,0,0)
 GREEN = (124,149,132)
 LIME = (201,211,144)
-DARK_LIME = (153,154,105)
 
 # Filepath for images
 PIECES_IMAGES = {
@@ -89,7 +88,7 @@ class UI:
                 if self.board.prev_move[0] == (row*8+col):
                     pygame.draw.rect(self.screen, LIME, (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
                 if self.board.prev_move[1] == (row*8+col):
-                    pygame.draw.rect(self.screen, DARK_LIME, (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+                    pygame.draw.rect(self.screen, LIME, (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
                 
                 #Draw highlighted square
                 if self.selected_square == (row, col):
@@ -98,13 +97,16 @@ class UI:
                 
                 #Draw pieces 
                 piece = self.board.get_piece_at(row * 8 + col)
-                
                 if piece:
                     piece_symbol = piece.symbol()
                     if piece_symbol in self.symbols:
                         # Draw the piece on the square
                         self.screen.blit(self.symbols[piece_symbol], 
                                          (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE))
+                        
+                if self.selected_square and (row, col) in self.board.get_legal_moves(*self.selected_square):
+                    pygame.draw.circle(self.screen, GREEN, 
+                    (col * SQUARE_SIZE + SQUARE_SIZE/2, (7-row) * SQUARE_SIZE + SQUARE_SIZE/2), SQUARE_SIZE/8)
 
 
     
