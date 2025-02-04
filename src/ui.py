@@ -3,7 +3,7 @@ from board import ChessBoard
 import pygame
 import os
 
-# Window constants
+# screen constants
 WINDOW_WIDTH = 480
 WINDOW_HEIGHT = 480
 SQUARE_SIZE = 60
@@ -14,6 +14,8 @@ GRAY = (224,213,234)
 WHITE  = (255,255,255)
 BLACK = (0,0,0)
 GREEN = (124,149,132)
+LIME = (201,211,144)
+DARK_LIME = (153,154,105)
 
 # Filepath for images
 PIECES_IMAGES = {
@@ -26,8 +28,8 @@ PIECES_IMAGES = {
 }
 
 class UI:
-    def __init__(self, window):
-        self.window = window
+    def __init__(self, screen):
+        self.screen = screen
         self.board = ChessBoard()
         self.font = pygame.font.Font(None, 48)
         self.selected_square = None
@@ -43,9 +45,10 @@ class UI:
         # Run until the user quits the game
         running = True
         while running:
-            self.window.fill((0, 0, 0))
+            self.screen.fill((0, 0, 0))
             self.draw_board()
 
+            #Handle events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -56,20 +59,20 @@ class UI:
         pygame.quit()
         
     def handle_click(self, mouse_pos):
-        col = mouse_pos[0] // SQUARE_SIZE
-        row = mouse_pos[1] // SQUARE_SIZE
-
-
+        new_col = mouse_pos[0] // SQUARE_SIZE
+        new_row = 7-(mouse_pos[1] // SQUARE_SIZE)
 
         if self.selected_square:
+            old_row = self.selected_square[0]
+            old_col = self.selected_square[1]
+
             # If a piece is already selected, attempt the move
-            pos = self.selected_square[0]*8 + self.selected_square[1]
-            new_pos = (7-row)*8 + col
-            self.board.make_move(pos, new_pos)
+            self.board.make_move(old_row, old_col, new_row, new_col)
             self.selected_square = None  # Deselect after move
         else:
             # Select the clicked square
-            self.selected_square = (7-row, col)
+            if self.board.get_piece_at(new_row*8 + new_col):
+                self.selected_square = (new_row, new_col)
 
 
     
@@ -78,12 +81,19 @@ class UI:
         for row in range(8):
             for col in range(8):
                 #Draw board
-                pygame.draw.rect(self.window, 
+                pygame.draw.rect(self.screen, 
                                  GRAY if (row + col) % 2 == 0 else PURPLE, 
                                  (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
                 
+                #Draw highlights on previous move squares
+                if self.board.prev_move[0] == (row*8+col):
+                    pygame.draw.rect(self.screen, LIME, (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+                if self.board.prev_move[1] == (row*8+col):
+                    pygame.draw.rect(self.screen, DARK_LIME, (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+                
+                #Draw highlighted square
                 if self.selected_square == (row, col):
-                    pygame.draw.rect(self.window, GREEN, 
+                    pygame.draw.rect(self.screen, GREEN, 
                                      (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
                 
                 #Draw pieces 
@@ -93,15 +103,15 @@ class UI:
                     piece_symbol = piece.symbol()
                     if piece_symbol in self.symbols:
                         # Draw the piece on the square
-                        self.window.blit(self.symbols[piece_symbol], 
+                        self.screen.blit(self.symbols[piece_symbol], 
                                          (col * SQUARE_SIZE, (7-row) * SQUARE_SIZE))
 
 
     
 def start_ui():
     pygame.init()
-    window = pygame.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
+    screen = pygame.display.set_mode([WINDOW_WIDTH, WINDOW_HEIGHT])
     pygame.display.set_caption('Chess')
 
-    ui = UI(window)
+    ui = UI(screen)
     ui.run()
